@@ -12,6 +12,11 @@ function isValidName(name: string) {
 function isValidEmail(email: string) {
   return email.match(/^(.+)\@(.+)$/);
 }
+
+function isValidPassword(password: string) {
+  return password.match(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/);
+}
+
 app.post("/signup", async (req: Request, res: Response) => {
   const input = req.body;
   if (!isValidName(input.name)) {
@@ -27,6 +32,11 @@ app.post("/signup", async (req: Request, res: Response) => {
   if (!validateCpf(input.document)) {
     return res.status(422).json({
       error: "Invalid document",
+    });
+  }
+  if (!isValidPassword(input.password)) {
+    return res.status(422).json({
+      error: "Invalid password",
     });
   }
   const accountId = crypto.randomUUID();
