@@ -33,3 +33,17 @@ test("não deve criar uma conta válida com nome inválido", async () => {
   expect(responseSignup.status).toBe(422);
   expect(outputSignup.error).toBe("Invalid name");
 });
+
+test("não deve criar uma conta válida com email inválido", async () => {
+  const inputSignup = {
+    name: "John Doe",
+    email: "john.doe",
+    document: "97456321558",
+    password: "asdQWE123",
+  };
+
+  const responseSignup = await axios.post("http://localhost:3000/signup", inputSignup);
+  const outputSignup = responseSignup.data;
+  expect(responseSignup.status).toBe(422);
+  expect(outputSignup.error).toBe("Invalid email");
+});

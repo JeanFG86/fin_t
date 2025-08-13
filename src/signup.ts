@@ -6,10 +6,14 @@ const accounts: any = [];
 
 app.post("/signup", async (req: Request, res: Response) => {
   const input = req.body;
-  const nameParts = input.name.split(" ");
-  if (nameParts.length < 2) {
+  if (!input.name.match(/[a-zA-Z] [a-zA-Z]+/)) {
     return res.status(422).json({
       error: "Invalid name",
+    });
+  }
+  if (!input.email.match(/^(.+)\@(.+)$/)) {
+    return res.status(422).json({
+      error: "Invalid email",
     });
   }
   const accountId = crypto.randomUUID();
