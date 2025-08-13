@@ -6,6 +6,12 @@ const accounts: any = [];
 
 app.post("/signup", async (req: Request, res: Response) => {
   const input = req.body;
+  const nameParts = input.name.split(" ");
+  if (nameParts.length < 2) {
+    return res.status(422).json({
+      error: "Invalid name",
+    });
+  }
   const accountId = crypto.randomUUID();
   const account = {
     accountId,
@@ -14,6 +20,7 @@ app.post("/signup", async (req: Request, res: Response) => {
     document: input.document,
     password: input.password,
   };
+
   accounts.push(account);
   res.json({
     accountId,
