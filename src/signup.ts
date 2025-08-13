@@ -4,14 +4,21 @@ app.use(express.json());
 
 const accounts: any = [];
 
+function isValidName(name: string) {
+  return name.match(/[a-zA-Z] [a-zA-Z]+/);
+}
+
+function isValidEmail(email: string) {
+  return email.match(/^(.+)\@(.+)$/);
+}
 app.post("/signup", async (req: Request, res: Response) => {
   const input = req.body;
-  if (!input.name.match(/[a-zA-Z] [a-zA-Z]+/)) {
+  if (!isValidName(input.name)) {
     return res.status(422).json({
       error: "Invalid name",
     });
   }
-  if (!input.email.match(/^(.+)\@(.+)$/)) {
+  if (!isValidEmail(input.email)) {
     return res.status(422).json({
       error: "Invalid email",
     });
