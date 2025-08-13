@@ -1,9 +1,12 @@
 import express, { Request, Response } from "express";
 import { validateCpf } from "./validateCpf";
+import pgp from "pg-promise";
 const app = express();
 app.use(express.json());
 
-const accounts: any = [];
+//const accounts: any = [];
+const connection = pgp()("postgres://postgres:123456@localhost:5435/fint");
+console.log(connection);
 
 function isValidName(name: string) {
   return name.match(/[a-zA-Z] [a-zA-Z]+/);
@@ -48,7 +51,14 @@ app.post("/signup", async (req: Request, res: Response) => {
     password: input.password,
   };
 
-  accounts.push(account);
+  //accounts.push(account);
+  await connection.query("insert into ccca.account (account_id, name, email, document, password) values ($1, $2, $3, $4, $5)", [
+    account.accountId,
+    account.name,
+    account.email,
+    account.document,
+    account.password,
+  ]);
   res.json({
     accountId,
   });
@@ -56,7 +66,8 @@ app.post("/signup", async (req: Request, res: Response) => {
 
 app.get("/accounts/:accountId", async (req: Request, res: Response) => {
   const accountId = req.params.accountId;
-  const account = accounts.find((account: any) => account.accountId === accountId);
-  res.json(account);
+  //const account = accounts.find((account: any) => account.accountId === accountId);
+  const [accountData] = await connection.query("select * from ccca.account where account_id = $1", [accountId]);
+  res.json(accountData);
 });
 app.listen(3000);
