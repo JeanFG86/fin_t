@@ -47,3 +47,17 @@ test("não deve criar uma conta válida com email inválido", async () => {
   expect(responseSignup.status).toBe(422);
   expect(outputSignup.error).toBe("Invalid email");
 });
+
+test("não deve criar uma conta válida com cpf inválido", async () => {
+  const inputSignup = {
+    name: "John Doe",
+    email: "john.doe@gmail.com",
+    document: "974563215",
+    password: "asdQWE123",
+  };
+
+  const responseSignup = await axios.post("http://localhost:3000/signup", inputSignup);
+  const outputSignup = responseSignup.data;
+  expect(responseSignup.status).toBe(422);
+  expect(outputSignup.error).toBe("Invalid document");
+});
