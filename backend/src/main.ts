@@ -61,10 +61,35 @@ app.post("/signup", async (req: Request, res: Response) => {
   });
 });
 
+app.post("/deposit", async (req: Request, res: Response) => {
+  try {
+    const { accountId, assetId, quantity } = req.body;
+
+    if (!accountId || !assetId || !quantity) {
+      return res.status(400).json({ error: "Invalid input" });
+    }
+
+    await connection.query("INSERT INTO ccca.account_asset (account_id, asset_id, quantity) VALUES ($1, $2, $3)", [accountId, assetId, quantity]);
+
+    res.status(201).json({ accountId, assetId, quantity });
+  } catch (err: any) {
+    console.error("Deposit error:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 app.get("/accounts/:accountId", async (req: Request, res: Response) => {
   const accountId = req.params.accountId;
   //const account = accounts.find((account: any) => account.accountId === accountId);
   const [accountData] = await connection.query("select * from ccca.account where account_id = $1", [accountId]);
+  const accountAssetsData = await connection.query("select * from ccca.account_asset where account_id = $1", [accountId]);
+  accountData.assets = [];
+  for (const accountAssetData of accountAssetsData) {
+    accountData.assets.push({
+      assetId: accountAssetData.asset_id,
+      quantity: parseFloat(accountAssetData.quantity),
+    });
+  }
   res.json(accountData);
 });
 app.listen(3000);
