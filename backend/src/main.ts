@@ -1,6 +1,7 @@
 import express, { Request, Response } from "express";
 import { validateCpf } from "./validateCpf";
 import pgp from "pg-promise";
+import { validPassword } from "./validatePassword";
 const app = express();
 app.use(express.json());
 
@@ -8,16 +9,12 @@ app.use(express.json());
 const connection = pgp()("postgres://postgres:123456@localhost:5435/fint");
 console.log(connection);
 
-function isValidName(name: string) {
+export function isValidName(name: string) {
   return name.match(/[a-zA-Z] [a-zA-Z]+/);
 }
 
-function isValidEmail(email: string) {
+export function isValidEmail(email: string) {
   return email.match(/^(.+)\@(.+)$/);
-}
-
-function isValidPassword(password: string) {
-  return password.match(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/);
 }
 
 app.post("/signup", async (req: Request, res: Response) => {
@@ -37,7 +34,7 @@ app.post("/signup", async (req: Request, res: Response) => {
       error: "Invalid document",
     });
   }
-  if (!isValidPassword(input.password)) {
+  if (!validPassword(input.password)) {
     return res.status(422).json({
       error: "Invalid password",
     });
