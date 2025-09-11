@@ -98,3 +98,32 @@ test("Deve fazer um depósito", async () => {
   expect(outputGetAccount.assets[0].assetId).toBe("BTC");
   expect(outputGetAccount.assets[0].quantity).toBe(10);
 });
+
+test("Deve fazer um saque", async () => {
+  const inputSignup = {
+    name: "John Doe",
+    email: "john.doe@gmail.com",
+    document: "97456321558",
+    password: "asdQWE123",
+  };
+
+  const { data: outputSignup } = await axios.post("http://localhost:3000/signup", inputSignup);
+
+  const inputDeposit = {
+    accountId: outputSignup.accountId,
+    assetId: "BTC",
+    quantity: 10,
+  };
+
+  await axios.post("http://localhost:3000/deposit", inputDeposit);
+  const inputWithdraw = {
+    accountId: outputSignup.accountId,
+    assetId: "BTC",
+    quantity: 5,
+  };
+  await axios.post("http://localhost:3000/withdraw", inputWithdraw);
+  const { data: outputGetAccount } = await axios.get(`http://localhost:3000/accounts/${outputSignup.accountId}`);
+  expect(outputGetAccount.assets).toHaveLength(1);
+  expect(outputGetAccount.assets[0].assetId).toBe("BTC");
+  expect(outputGetAccount.assets[0].quantity).toBe(5);
+});

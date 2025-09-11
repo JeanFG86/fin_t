@@ -64,16 +64,39 @@ app.post("/signup", async (req: Request, res: Response) => {
 app.post("/deposit", async (req: Request, res: Response) => {
   try {
     const { accountId, assetId, quantity } = req.body;
-
     if (!accountId || !assetId || !quantity) {
       return res.status(400).json({ error: "Invalid input" });
     }
-
     await connection.query("INSERT INTO ccca.account_asset (account_id, asset_id, quantity) VALUES ($1, $2, $3)", [accountId, assetId, quantity]);
-
     res.status(201).json({ accountId, assetId, quantity });
   } catch (err: any) {
     console.error("Deposit error:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+app.post("/withdraw", async (req: Request, res: Response) => {
+  try {
+    const { accountId, assetId, quantity } = req.body;
+    if (!accountId || !assetId || !quantity) {
+      return res.status(400).json({ error: "Invalid input" });
+    }
+    const [accountAssetsData] = await connection.query("select * from ccca.account_asset where account_id = $1 and asset_id = $2", [
+      accountId,
+      assetId,
+    ]);
+    // if(!accountAssetsData || accountAssetsData.length === 0) {
+    //   return res.status(422).json({ error: "No assets found for this account" });
+    // }
+    let quantityAvailable = parseFloat(accountAssetsData[0].quantity) - quantity;
+    await connection.query("UPDATE ccca.account_asset set quantity = $1 WHERE account_id = $2 AND asset_id = $3", [
+      quantityAvailable,
+      accountId,
+      assetId,
+    ]);
+    res.status(201).json({ accountId, assetId });
+  } catch (err: any) {
+    console.error("withdraw error:", err);
     res.status(500).json({ error: "Internal server error" });
   }
 });
