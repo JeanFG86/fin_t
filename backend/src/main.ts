@@ -104,6 +104,62 @@ app.post("/withdraw", async (req: Request, res: Response) => {
   }
 });
 
+app.post("/place_orders", async (req: Request, res: Response) => {
+  try {
+    const input = req.body;
+    const order = {
+      orderId: crypto.randomUUID(),
+      marketId: input.marketId, // Corrigido: marketId em vez de markertId
+      accountId: input.accountId,
+      side: input.side,
+      quantity: input.quantity,
+      price: input.price,
+      status: "open",
+      timestamp: new Date(),
+    };
+
+    // Query corrigida com nome correto da coluna
+    await connection.query(
+      "insert into ccca.order (order_id, market_id, account_id, side, quantity, price, status, timestamp) values ($1, $2, $3, $4, $5, $6, $7, $8)",
+      [order.orderId, order.marketId, order.accountId, order.side, order.quantity, order.price, order.status, order.timestamp]
+    );
+
+    res.json({ orderId: order.orderId });
+  } catch (err: any) {
+    console.error("PLACE ORDER ERROR:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+app.get("/orders/:orderId", async (req: Request, res: Response) => {
+  try {
+    const orderId = req.params.orderId;
+    const orderData: any = await connection.query("select * from ccca.order where order_id = $1", [orderId]);
+
+    if (!orderData || orderData.length === 0) {
+      return res.status(404).json({ error: "Order not found" });
+    }
+
+    const row = orderData[0];
+    const order = {
+      orderId: row.order_id,
+      marketId: row.market_id, // Corrigido: marketId mapeado corretamente
+      accountId: row.account_id,
+      side: row.side,
+      quantity: parseFloat(row.quantity),
+      price: parseFloat(row.price),
+      status: row.status,
+      timestamp: row.timestamp,
+    };
+    console.log(order);
+
+    res.json(order);
+  } catch (err: any) {
+    console.error("GET ORDER ERROR:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 app.get("/accounts/:accountId", async (req: Request, res: Response) => {
   const accountId = req.params.accountId;
   //const account = accounts.find((account: any) => account.accountId === accountId);

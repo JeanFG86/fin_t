@@ -155,3 +155,37 @@ test("Não deve fazer um saque sem fundos", async () => {
   expect(responseWithdraw.status).toBe(422);
   expect(outputWithdraw.error).toBe("Insufficient funds");
 });
+
+test("Deve criar uma ordem de venda", async () => {
+  const inputSignup = {
+    name: "John Doe",
+    email: "john.doe@gmail.com",
+    document: "97456321558",
+    password: "asdQWE123",
+  };
+
+  const responseSignup = await axios.post("http://localhost:3000/signup", inputSignup);
+  const outputSignup = responseSignup.data;
+  const inputPlaceOrder = {
+    marketId: "BTC/USD", // Corrigido: marketId em vez de markertId
+    accountId: outputSignup.accountId,
+    side: "sell",
+    quantity: 1,
+    price: 94000,
+  };
+  const responsePlaceOrder = await axios.post("http://localhost:3000/place_orders", inputPlaceOrder);
+  const outputPlaceOrder = responsePlaceOrder.data; // Removido await desnecessário
+  expect(outputPlaceOrder).toBeDefined();
+
+  const responseGetOrder = await axios.get(`http://localhost:3000/orders/${outputPlaceOrder.orderId}`);
+  const outputGetOrder = responseGetOrder.data;
+  console.log(outputGetOrder);
+
+  expect(outputGetOrder).toBeDefined();
+  expect(outputGetOrder.marketId).toBe("BTC/USD"); // Corrigido: marketId
+  expect(outputGetOrder.side).toBe("sell");
+  expect(outputGetOrder.quantity).toBe(1);
+  expect(outputGetOrder.price).toBe(94000);
+  expect(outputGetOrder.status).toBe("open");
+  expect(outputGetOrder.timestamp).toBeDefined();
+});
