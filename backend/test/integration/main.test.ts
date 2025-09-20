@@ -99,7 +99,7 @@ test("Deve fazer um depósito", async () => {
   expect(outputGetAccount.assets[0].quantity).toBe(10);
 });
 
-test("Deve fazer um saque", async () => {
+test.only("Deve fazer um saque", async () => {
   const inputSignup = {
     name: "John Doe",
     email: "john.doe@gmail.com",

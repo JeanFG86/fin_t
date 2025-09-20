@@ -81,22 +81,25 @@ app.post("/withdraw", async (req: Request, res: Response) => {
     if (!accountId || !assetId || !quantity) {
       return res.status(400).json({ error: "Invalid input" });
     }
-    const [accountAssetsData] = await connection.query("select * from ccca.account_asset where account_id = $1 and asset_id = $2", [
+    const accountAssetsData: any = await connection.query("select * from ccca.account_asset where account_id = $1 and asset_id = $2", [
       accountId,
       assetId,
     ]);
-    // if(!accountAssetsData || accountAssetsData.length === 0) {
-    //   return res.status(422).json({ error: "No assets found for this account" });
-    // }
-    let quantityAvailable = parseFloat(accountAssetsData[0].quantity) - quantity;
+    if (!accountAssetsData || accountAssetsData.length === 0) {
+      return res.status(422).json({ error: "No assets found for this account" });
+    }
+    const quantityAvailable = parseFloat(accountAssetsData[0].quantity) - Number(quantity);
+    if (quantityAvailable < 0) {
+      return res.status(422).json({ error: "Insufficient balance" });
+    }
     await connection.query("UPDATE ccca.account_asset set quantity = $1 WHERE account_id = $2 AND asset_id = $3", [
       quantityAvailable,
       accountId,
       assetId,
     ]);
-    res.status(201).json({ accountId, assetId });
+
+    res.status(201).json({ accountId, assetId, remaining: quantityAvailable });
   } catch (err: any) {
-    console.error("withdraw error:", err);
     res.status(500).json({ error: "Internal server error" });
   }
 });
