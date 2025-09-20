@@ -99,7 +99,7 @@ test("Deve fazer um depósito", async () => {
   expect(outputGetAccount.assets[0].quantity).toBe(10);
 });
 
-test.only("Deve fazer um saque", async () => {
+test("Deve fazer um saque", async () => {
   const inputSignup = {
     name: "John Doe",
     email: "john.doe@gmail.com",
@@ -126,4 +126,32 @@ test.only("Deve fazer um saque", async () => {
   expect(outputGetAccount.assets).toHaveLength(1);
   expect(outputGetAccount.assets[0].assetId).toBe("BTC");
   expect(outputGetAccount.assets[0].quantity).toBe(5);
+});
+
+test("Não deve fazer um saque sem fundos", async () => {
+  const inputSignup = {
+    name: "John Doe",
+    email: "john.doe@gmail.com",
+    document: "97456321558",
+    password: "asdQWE123",
+  };
+
+  const { data: outputSignup } = await axios.post("http://localhost:3000/signup", inputSignup);
+
+  const inputDeposit = {
+    accountId: outputSignup.accountId,
+    assetId: "BTC",
+    quantity: 5,
+  };
+
+  await axios.post("http://localhost:3000/deposit", inputDeposit);
+  const inputWithdraw = {
+    accountId: outputSignup.accountId,
+    assetId: "BTC",
+    quantity: 10,
+  };
+  const responseWithdraw = await axios.post("http://localhost:3000/withdraw", inputWithdraw);
+  const outputWithdraw = responseWithdraw.data;
+  expect(responseWithdraw.status).toBe(422);
+  expect(outputWithdraw.error).toBe("Insufficient funds");
 });

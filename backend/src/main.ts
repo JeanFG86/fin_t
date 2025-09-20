@@ -90,7 +90,7 @@ app.post("/withdraw", async (req: Request, res: Response) => {
     }
     const quantityAvailable = parseFloat(accountAssetsData[0].quantity) - Number(quantity);
     if (quantityAvailable < 0) {
-      return res.status(422).json({ error: "Insufficient balance" });
+      return res.status(422).json({ error: "Insufficient funds" });
     }
     await connection.query("UPDATE ccca.account_asset set quantity = $1 WHERE account_id = $2 AND asset_id = $3", [
       quantityAvailable,
