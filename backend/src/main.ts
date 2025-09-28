@@ -1,8 +1,17 @@
 import express, { Request, Response } from "express";
 import { validateCpf } from "./validateCpf";
+import cors from "cors";
 import pgp from "pg-promise";
 import { validPassword } from "./validatePassword";
 const app = express();
+
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true,
+  })
+);
+
 app.use(express.json());
 
 //const accounts: any = [];
@@ -19,6 +28,7 @@ export function isValidEmail(email: string) {
 
 app.post("/signup", async (req: Request, res: Response) => {
   const input = req.body;
+  console.log("signup", req.body);
   if (!isValidName(input.name)) {
     return res.status(422).json({
       error: "Invalid name",
